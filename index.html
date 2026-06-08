@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="zh-CN" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SHI YIXIN — Spatial Visualization Design</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* ===== Taste-Skill v2 Optimized Styles ===== */
+        :root {
+            --bg-primary: #0a0a0a;
+            --bg-secondary: #0f0f0f;
+            --bg-tertiary: #141414;
+            --text-primary: #e8e6e3;
+            --text-secondary: #9c9a97;
+            --text-muted: #6b6967;
+            --accent: #c4945a;
+            --accent-dim: #a0783e;
+            --border-subtle: rgba(255,255,255,0.06);
+            --border-visible: rgba(255,255,255,0.10);
+            --border-accent: rgba(196,148,90,0.25);
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* === Typography === */
+        .font-display { font-weight: 200; letter-spacing: -0.02em; }
+        .font-body { font-weight: 300; }
+        .font-label { 
+            font-size: 0.6875rem; 
+            letter-spacing: 0.28em; 
+            text-transform: uppercase; 
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        /* === Accent Elements === */
+        .accent-line {
+            width: 3rem;
+            height: 1px;
+            background: var(--accent);
+            opacity: 0.6;
+        }
+
+        /* === Fade Up Animation (taste-skill: MOTION_INTENSITY 7) === */
+        .fade-up {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .fade-up:nth-child(2) { transition-delay: 0.1s; }
+        .fade-up:nth-child(3) { transition-delay: 0.2s; }
+        .fade-up:nth-child(4) { transition-delay: 0.3s; }
+
+        /* === Button Tactile Feedback === */
+        .btn-primary {
+            background: var(--accent);
+            color: #0a0a0a;
+            font-weight: 500;
+            letter-spacing: 0.02em;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-primary:hover {
+            background: #d4a86a;
+            transform: translateY(-1px);
+        }
+        .btn-primary:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        .btn-secondary {
+            border: 1px solid rgba(255,255,255,0.15);
+            color: var(--text-primary);
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.06);
+            border-color: rgba(255,255,255,0.3);
+        }
+        .btn-secondary:active {
+            transform: scale(0.98);
+        }
+
+        /* === Nav === */
+        .nav-blur {
+            backdrop-filter: blur(16px) saturate(180%);
+            -webkit-backdrop-filter: blur(16px) saturate(180%);
+            background: rgba(10,10,10,0.72);
+        }
+
+        /* === Image Hover === */
+        .project-image {
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), filter 0.6s ease;
+        }
+        .project-card:hover .project-image {
+            transform: scale(1.03);
+            filter: brightness(1.08);
+        }
+
+        /* === Shape System (documented mixed) === */
+        .shape-btn { border-radius: 9999px; }
+        .shape-image { border-radius: 1.25rem; }
+        .shape-input { border-radius: 0.875rem; }
+        .shape-card { border-radius: 1.25rem; }
+
+        /* === Image Viewer (preserved) === */
+        .image-viewer {
+            position: fixed; inset: 0; z-index: 200; background: rgba(0,0,0,0.96);
+            backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+        }
+        .image-viewer.active { opacity: 1; pointer-events: auto; }
+        .viewer-img { max-width: 90vw; max-height: 85vh; object-fit: contain; user-select: none; }
+        .viewer-close {
+            position: fixed; top: 1.5rem; right: 1.5rem; z-index: 210;
+            color: white; font-size: 2rem; cursor: pointer; width: 44px; height: 44px;
+            display: flex; align-items: center; justify-content: center; border-radius: 50%;
+            background: rgba(255,255,255,0.08); transition: background 0.2s;
+        }
+        .viewer-close:hover { background: rgba(255,255,255,0.16); }
+        .viewer-controls {
+            position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 210;
+            display: flex; gap: 1rem;
+        }
+        .viewer-controls button {
+            width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.08);
+            color: white; font-size: 1rem; cursor: pointer; border: none; transition: background 0.2s;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .viewer-controls button:hover { background: rgba(255,255,255,0.16); }
+
+        /* === Modal (preserved) === */
+        .gallery-thumb {
+            width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: 0.5rem;
+            cursor: pointer; transition: transform 0.2s ease, opacity 0.2s;
+        }
+        .gallery-thumb:hover { transform: scale(1.02); opacity: 0.85; }
+        .modal-gallery {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem;
+        }
+        @media (max-width: 768px) {
+            .modal-gallery { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* === Mobile Nav === */
+        @media (max-width: 768px) {
+            .desktop-nav-links { display: none; }
+            .mobile-menu-btn { display: block; }
+        }
+        @media (min-width: 769px) {
+            .mobile-menu-btn { display: none; }
+        }
+
+        /* === Reduced Motion === */
+        @media (prefers-reduced-motion: reduce) {
+            .fade-up { transition: opacity 0.3s ease; transform: none; }
+            .project-image { transition: none; }
+            .btn-primary, .btn-secondary { transition: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== NAVIGATION ===== -->
+    <nav class="fixed top-0 left-0 right-0 z-[100] nav-blur border-b border-white/5">
+        <div class="max-w-[1400px] mx-auto px-6 md:px-10 h-16 flex items-center justify-between">
+            <a href="#" class="text-sm font-medium tracking-wide text-[#e8e6e3]" data-i18n="nav_name">SHI YIXIN</a>
+            <div class="desktop-nav-links flex items-center gap-8 text-sm">
+                <a href="#works" class="text-[#9c9a97] hover:text-[#e8e6e3] transition-colors duration-200" data-i18n="nav_works">作品</a>
+                <a href="#workflow" class="text-[#9c9a97] hover:text-[#e8e6e3] transition-colors duration-200" data-i18n="nav_workflow">工作流</a>
+                <a href="#contact" class="text-[#9c9a97] hover:text-[#e8e6e3] transition-colors duration-200" data-i18n="nav_contact">合作</a>
+                <button id="langToggle" onclick="window.i18n.setLang(window.i18n.getLang()==='zh'?'en':'zh')" class="text-[#9c9a97] hover:text-[#e8e6e3] transition-colors duration-200 text-xs px-2 py-1 border border-white/10 shape-btn">EN</button>
+            </div>
+            <button id="mobileMenuBtn" class="mobile-menu-btn text-[#9c9a97] text-xl">&vellip;</button>
+        </div>
+    </nav>
+
+    <!-- ===== HERO — Asymmetric Split (taste-skill §4.3: NO centered hero) ===== -->
+    <section class="min-h-[100dvh] flex items-center pt-16 pb-12 px-6 md:px-10">
+        <div class="max-w-[1400px] mx-auto w-full grid md:grid-cols-[1fr_0.6fr] gap-8 md:gap-20 items-center">
+            <!-- Left: Content -->
+            <div class="fade-up">
+                <p class="font-label mb-6" data-i18n="hero_subtitle">Interior Visualization Designer</p>
+                <h1 class="font-display text-5xl md:text-7xl lg:text-8xl leading-[0.95] mb-8">
+                    <span class="block" data-i18n="hero_title_line1">空间视觉</span>
+                    <span class="block text-[#c4945a]" data-i18n="hero_title_line2">叙事设计</span>
+                </h1>
+                <p class="font-body text-[#9c9a97] text-base md:text-lg leading-relaxed max-w-[52ch] mb-10" data-i18n="hero_desc">
+                    专注工装与商业空间的氛围表达。以3ds Max、VRay为核心工具，高效率输出写实渲染，强调空间情绪与设计叙事。
+                </p>
+                <div class="flex flex-wrap gap-4">
+                    <a href="#works" class="btn-primary px-8 py-3.5 shape-btn text-sm inline-block" data-i18n="hero_btn_works">查看作品</a>
+                    <a href="#contact" class="btn-secondary px-8 py-3.5 shape-btn text-sm inline-block" data-i18n="hero_btn_contact">项目委托</a>
+                </div>
+            </div>
+            <!-- Right: Architectural accent element -->
+            <div class="hidden md:flex fade-up items-center justify-center">
+                <div class="w-full aspect-[3/4] bg-gradient-to-br from-[#1a1a1a] to-[#0f0f0f] shape-image border border-white/5 flex items-center justify-center">
+                    <div class="space-y-6 w-4/5">
+                        <div class="h-px w-full bg-gradient-to-r from-transparent via-[#c4945a]/40 to-transparent"></div>
+                        <div class="h-px w-3/4 mx-auto bg-gradient-to-r from-transparent via-[#c4945a]/25 to-transparent"></div>
+                        <div class="h-px w-1/2 mx-auto bg-gradient-to-r from-transparent via-[#c4945a]/15 to-transparent"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== ABOUT — Offset Layout (taste-skill §6: different layout family) ===== -->
+    <section id="about" class="py-28 px-6 md:px-10 border-t border-white/5 bg-[#0f0f0f]">
+        <div class="max-w-[1400px] mx-auto">
+            <div class="grid md:grid-cols-[0.35fr_1fr] gap-12 md:gap-24">
+                <!-- Left: Label column -->
+                <div class="fade-up">
+                    <p class="font-label mb-3" data-i18n="about_label">Design Philosophy</p>
+                    <div class="accent-line mt-5"></div>
+                </div>
+                <!-- Right: Content -->
+                <div class="fade-up space-y-6">
+                    <h2 class="font-display text-4xl md:text-5xl leading-[1.05]">
+                        <span class="block" data-i18n="about_title_line1">让空间在光影中</span>
+                        <span class="block text-[#c4945a]" data-i18n="about_title_line2">自然叙事</span>
+                    </h2>
+                    <div class="space-y-4 text-[#9c9a97] text-base leading-relaxed max-w-[62ch]">
+                        <p data-i18n="about_p1">环境艺术设计背景，专注商业空间、酒店改造与品牌展厅的视觉化呈现。我相信好的效果图不止于写实，更应该传递空间的情绪与使用场景。</p>
+                        <p data-i18n="about_p2">熟练运用3ds Max与VRay建立标准化高效工作流，从建模、灯光到后期输出，能够快速配合设计团队完成方案视觉化，以效率驱动创意落地。</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5 pt-4">
+                        <span class="text-xs border border-white/10 text-[#9c9a97] px-4 py-2 shape-btn" data-i18n="tag_modeling">3ds Max 高效建模</span>
+                        <span class="text-xs border border-white/10 text-[#9c9a97] px-4 py-2 shape-btn" data-i18n="tag_rendering">VRay 写实渲染</span>
+                        <span class="text-xs border border-white/10 text-[#9c9a97] px-4 py-2 shape-btn" data-i18n="tag_ai">AI辅助工作流</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== WORKS — Mixed Layout Family (taste-skill §6: 3+ layout types) ===== -->
+    <section id="works" class="py-28 px-6 md:px-10 border-t border-white/5 bg-[#0a0a0a]">
+        <div class="max-w-[1400px] mx-auto">
+            <div class="fade-up mb-16">
+                <p class="font-label mb-3" data-i18n="works_label">Selected Projects</p>
+                <h2 class="font-display text-4xl md:text-5xl text-[#c4945a]" data-i18n="works_title">代表作品</h2>
+            </div>
+
+            <!-- Project 1: Left image, Right text (Layout A) -->
+            <div class="project-card grid md:grid-cols-[1.1fr_0.9fr] gap-0 mb-2 cursor-pointer fade-up" data-project-img="residence">
+                <div class="overflow-hidden shape-image">
+                    <img src="WebP/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-5249-将生42c74d3b-e3bd-4984-9586-f36efb9082b3成一....webp" alt="Residence" class="project-image w-full aspect-[16/10] object-cover">
+                </div>
+                <div class="flex flex-col justify-center px-8 md:px-14 py-8">
+                    <span class="font-label mb-3" data-i18n-project="residence" data-i18n-field="type">居住空间 / 自然主义</span>
+                    <h3 class="font-display text-2xl md:text-3xl mb-4" data-i18n-project="residence" data-i18n-field="title">原木静谧住宅</h3>
+                    <p class="text-[#9c9a97] text-sm leading-relaxed mb-5" data-i18n-project="residence" data-i18n-field="desc">大量使用原木格栅与微水泥，暖色灯光营造沉稳治愈氛围。</p>
+                    <div class="flex flex-wrap gap-3 text-xs text-[#6b6967] mb-4">
+                        <span data-i18n-project="residence" data-i18n-field="tags">日式禅意 · 极简</span>
+                        <span>2025</span>
+                        <span>3ds Max / VRay</span>
+                    </div>
+                    <button class="view-project-btn btn-secondary px-6 py-2.5 shape-btn text-sm w-fit" data-project="residence" data-i18n-project="residence" data-i18n-field="btn">查看完整案例</button>
+                </div>
+            </div>
+
+            <!-- Project 2: Right image, Left text (Layout B) -->
+            <div class="project-card grid md:grid-cols-[0.9fr_1.1fr] gap-0 mb-2 cursor-pointer fade-up" data-project-img="museum">
+                <div class="flex flex-col justify-center px-8 md:px-14 py-8 order-2 md:order-1">
+                    <span class="font-label mb-3" data-i18n-project="museum" data-i18n-field="type">文化展馆 / 品牌空间</span>
+                    <h3 class="font-display text-2xl md:text-3xl mb-4" data-i18n-project="museum" data-i18n-field="title">可口可乐博物馆 · 云南</h3>
+                    <p class="text-[#9c9a97] text-sm leading-relaxed mb-5" data-i18n-project="museum" data-i18n-field="desc">融合民族特色与现代工业美学，以红白主色结合在地图案。</p>
+                    <div class="flex flex-wrap gap-3 text-xs text-[#6b6967] mb-4">
+                        <span data-i18n-project="museum" data-i18n-field="tags">工业现代 · 文化融合</span>
+                        <span>2025</span>
+                        <span>3ds Max / VRay</span>
+                    </div>
+                    <button class="view-project-btn btn-secondary px-6 py-2.5 shape-btn text-sm w-fit" data-project="museum" data-i18n-project="museum" data-i18n-field="btn">查看完整案例</button>
+                </div>
+                <div class="overflow-hidden shape-image order-1 md:order-2">
+                    <img src="WebP/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-1877-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp" alt="Museum" class="project-image w-full aspect-[16/10] object-cover">
+                </div>
+            </div>
+
+            <!-- Project 3 & 4: Side by side (Layout C) -->
+            <div class="grid md:grid-cols-2 gap-2">
+                <div class="project-card cursor-pointer fade-up" data-project-img="miao">
+                    <div class="overflow-hidden shape-image mb-5">
+                        <img src="WebP/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-1676-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp" alt="Miao" class="project-image w-full aspect-[16/10] object-cover">
+                    </div>
+                    <span class="font-label mb-2 block" data-i18n-project="miao" data-i18n-field="type">文化展馆 / 民族叙事</span>
+                    <h3 class="font-display text-xl md:text-2xl mb-2" data-i18n-project="miao" data-i18n-field="title">苗韵展馆</h3>
+                    <p class="text-[#9c9a97] text-sm leading-relaxed mb-3" data-i18n-project="miao" data-i18n-field="desc">深植于苗族文化底蕴，粗犷原石堆叠与现代金属材质进行空间叙事。</p>
+                    <div class="flex flex-wrap gap-3 text-xs text-[#6b6967] mb-4">
+                        <span data-i18n-project="miao" data-i18n-field="tags">原石 · 金属 · 暗调</span>
+                        <span>2025</span>
+                    </div>
+                    <button class="view-project-btn btn-secondary px-6 py-2.5 shape-btn text-sm" data-project="miao" data-i18n-project="miao" data-i18n-field="btn">查看完整案例</button>
+                </div>
+                <div class="project-card cursor-pointer fade-up" data-project-img="office">
+                    <div class="overflow-hidden shape-image mb-5">
+                        <img src="WebP/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-2686-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp" alt="Office" class="project-image w-full aspect-[16/10] object-cover">
+                    </div>
+                    <span class="font-label mb-2 block" data-i18n-project="office" data-i18n-field="type">办公空间 / 生态现代主义</span>
+                    <h3 class="font-display text-xl md:text-2xl mb-2" data-i18n-project="office" data-i18n-field="title">厦门可口可乐办公楼</h3>
+                    <p class="text-[#9c9a97] text-sm leading-relaxed mb-3" data-i18n-project="office" data-i18n-field="desc">玻璃幕墙与立体绿植墙彰显自然与可持续发展。</p>
+                    <div class="flex flex-wrap gap-3 text-xs text-[#6b6967] mb-4">
+                        <span data-i18n-project="office" data-i18n-field="tags">生态现代 · 品牌融合</span>
+                        <span>2025</span>
+                    </div>
+                    <button class="view-project-btn btn-secondary px-6 py-2.5 shape-btn text-sm" data-project="office" data-i18n-project="office" data-i18n-field="btn">查看完整案例</button>
+                </div>
+            </div>
+
+            <!-- View All -->
+            <div class="text-center mt-16 fade-up">
+                <a href="all-projects.html" class="btn-secondary px-10 py-3.5 shape-btn text-sm inline-block" data-i18n="works_btn_all">查看所有作品</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== WORKFLOW — Staggered Timeline (taste-skill §6: distinct layout family) ===== -->
+    <section id="workflow" class="py-28 px-6 md:px-10 border-t border-white/5 bg-[#0f0f0f]">
+        <div class="max-w-[1400px] mx-auto">
+            <div class="fade-up mb-16">
+                <p class="font-label mb-3" data-i18n="wf_label">High Efficiency Workflow</p>
+                <h2 class="font-display text-4xl md:text-5xl text-[#c4945a]" data-i18n="wf_title">高效率视觉工作流</h2>
+                <p class="text-[#9c9a97] text-base mt-5 max-w-[52ch]" data-i18n="wf_desc">从CAD到最终渲染输出，建立标准化的材质库与灯光预设，大幅压缩制作周期。平均工装空间3-5天完成全案视觉表达，且保证写实质感。</p>
+            </div>
+            <div class="grid md:grid-cols-4 gap-3">
+                <!-- Step 1 -->
+                <div class="fade-up bg-[#141414] border border-white/5 shape-card p-6 md:p-7">
+                    <span class="text-[#c4945a] text-3xl font-display">01</span>
+                    <div class="h-px w-8 bg-white/10 my-4"></div>
+                    <h3 class="text-lg font-medium mb-1" data-i18n="wf_step1_title">快速建模</h3>
+                    <span class="text-xs text-[#6b6967]">3ds Max</span>
+                    <p class="text-[#9c9a97] text-sm mt-3 leading-relaxed" data-i18n="wf_step1_desc">高效的商业空间拓扑与曲面建模，适应频繁方案修改。</p>
+                </div>
+                <!-- Step 2 -->
+                <div class="fade-up bg-[#141414] border border-white/5 shape-card p-6 md:p-7 md:mt-8">
+                    <span class="text-[#c4945a] text-3xl font-display">02</span>
+                    <div class="h-px w-8 bg-white/10 my-4"></div>
+                    <h3 class="text-lg font-medium mb-1" data-i18n="wf_step2_title">VRay渲染管线</h3>
+                    <span class="text-xs text-[#6b6967]">写实预设</span>
+                    <p class="text-[#9c9a97] text-sm mt-3 leading-relaxed" data-i18n="wf_step2_desc">自研灯光体系与材质库，保障出图效率的同时维持照片级真实感。</p>
+                </div>
+                <!-- Step 3 -->
+                <div class="fade-up bg-[#141414] border border-white/5 shape-card p-6 md:p-7 md:mt-16">
+                    <span class="text-[#c4945a] text-3xl font-display">03</span>
+                    <div class="h-px w-8 bg-white/10 my-4"></div>
+                    <h3 class="text-lg font-medium mb-1" data-i18n="wf_step3_title">AI辅助流程</h3>
+                    <span class="text-xs text-[#6b6967]">Midjourney / SD</span>
+                    <p class="text-[#9c9a97] text-sm mt-3 leading-relaxed" data-i18n="wf_step3_desc">概念阶段快速生成氛围参考，缩短前期沟通成本，扩展创意边界。</p>
+                </div>
+                <!-- Step 4 -->
+                <div class="fade-up bg-[#141414] border border-white/5 shape-card p-6 md:p-7 md:mt-24">
+                    <span class="text-[#c4945a] text-3xl font-display">04</span>
+                    <div class="h-px w-8 bg-white/10 my-4"></div>
+                    <h3 class="text-lg font-medium mb-1" data-i18n="wf_step4_title">空间情绪表达</h3>
+                    <span class="text-xs text-[#6b6967]">光影叙事</span>
+                    <p class="text-[#9c9a97] text-sm mt-3 leading-relaxed" data-i18n="wf_step4_desc">通过镜头构图、材料质感与光影氛围，强化设计的商业叙事能力。</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== CONTACT — Centered form (allowed for editorial/trust sections) ===== -->
+    <section id="contact" class="py-28 px-6 md:px-10 border-t border-white/5 bg-[#0a0a0a]">
+        <div class="max-w-[1400px] mx-auto">
+            <div class="max-w-2xl mx-auto">
+                <div class="fade-up text-center mb-14">
+                    <p class="font-label mb-3" data-i18n="contact_label">Start a project</p>
+                    <h2 class="font-display text-4xl md:text-5xl text-[#c4945a]" data-i18n="contact_title">项目委托</h2>
+                    <div class="accent-line mx-auto mt-5"></div>
+                    <p class="text-[#9c9a97] mt-6 text-sm max-w-md mx-auto" data-i18n="contact_subdesc">填写以下信息，我会在24小时内与你沟通具体需求与报价。</p>
+                </div>
+                <form id="contactForm" class="space-y-5 fade-up">
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <input type="text" name="name" data-i18n="form_name" placeholder="你的姓名 / 公司" required class="w-full bg-[#0f0f0f] border border-white/10 shape-input px-5 py-3.5 text-sm text-[#e8e6e3] placeholder:text-[#6b6967] focus:outline-none focus:border-[#c4945a]/40 transition-colors">
+                        <input type="text" name="phone" data-i18n="form_phone" placeholder="微信 / 手机号" required class="w-full bg-[#0f0f0f] border border-white/10 shape-input px-5 py-3.5 text-sm text-[#e8e6e3] placeholder:text-[#6b6967] focus:outline-none focus:border-[#c4945a]/40 transition-colors">
+                    </div>
+                    <div class="grid md:grid-cols-2 gap-4">
+                        <select name="projectType" class="w-full bg-[#0f0f0f] border border-white/10 shape-input px-5 py-3.5 text-sm text-[#9c9a97] focus:outline-none focus:border-[#c4945a]/40 transition-colors">
+                            <option value="" data-i18n="form_type_label">项目类型</option>
+                            <option data-i18n="form_type1">工装 / 商业空间</option>
+                            <option data-i18n="form_type2">家装 / 住宅空间</option>
+                            <option data-i18n="form_type3">其他 / 咨询</option>
+                        </select>
+                        <input type="text" name="area" data-i18n="form_area" placeholder="空间面积 / 大约预算" class="w-full bg-[#0f0f0f] border border-white/10 shape-input px-5 py-3.5 text-sm text-[#e8e6e3] placeholder:text-[#6b6967] focus:outline-none focus:border-[#c4945a]/40 transition-colors">
+                    </div>
+                    <textarea name="message" rows="4" data-i18n="form_msg" placeholder="简单描述项目需求（风格、角度数量、特殊要求等）" class="w-full bg-[#0f0f0f] border border-white/10 shape-input px-5 py-3.5 text-sm text-[#e8e6e3] placeholder:text-[#6b6967] resize-none focus:outline-none focus:border-[#c4945a]/40 transition-colors"></textarea>
+                    <button type="submit" class="btn-primary w-full py-3.5 shape-btn text-sm" data-i18n="form_submit">提交合作意向</button>
+                    <p class="text-center text-[#6b6967] text-xs mt-3" data-i18n="form_note">提交后我将尽快通过微信/电话联系您，请留意消息。</p>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="border-t border-white/5 py-10 px-6 text-center text-[#6b6967] text-xs bg-[#0a0a0a]">
+        <p data-i18n="footer_copyright">&copy; 2025 SHI YIXIN — Spatial Visualization Design Studio</p>
+        <div class="flex justify-center gap-6 mt-3 text-sm">
+            <a href="#" class="hover:text-[#c4945a] transition-colors" data-i18n="footer_email">Email: 1250027279@qq.com</a>
+            <a href="#" class="hover:text-[#c4945a] transition-colors" data-i18n="footer_xhs">Xiaohongshu: Shi_YX</a>
+        </div>
+    </footer>
+
+    <!-- ===== PROJECT MODAL (preserved) ===== -->
+    <div id="projectModal" class="fixed inset-0 z-[150] bg-black/95 backdrop-blur-sm invisible opacity-0 transition-all duration-300 flex items-center justify-center p-4">
+        <div class="bg-[#0f0f0f] border border-white/10 shape-card max-w-5xl w-full max-h-[90vh] overflow-y-auto">
+            <div class="sticky top-0 flex justify-end p-4 bg-[#0f0f0f]/90 z-10">
+                <button id="closeModalBtn" class="text-3xl text-white hover:text-[#c4945a] transition-colors w-10 h-10 flex items-center justify-center">&times;</button>
+            </div>
+            <div class="p-6 pt-0" id="modalContent"></div>
+        </div>
+    </div>
+
+    <!-- ===== IMAGE VIEWER (preserved) ===== -->
+    <div id="fullImageViewer" class="image-viewer">
+        <div class="viewer-container relative flex items-center justify-center w-full h-full">
+            <img id="fullImg" class="viewer-img" src="">
+        </div>
+        <div class="viewer-close" id="viewerClose">&times;</div>
+        <div class="viewer-controls">
+            <button id="viewerPrev"><i class="fa-solid fa-chevron-left"></i></button>
+            <button id="viewerNext"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+        <div class="hidden md:block absolute bottom-4 left-0 right-0 text-center text-[#6b6967] text-xs pointer-events-none" data-i18n="viewer_desktop_hint">鼠标滚轮缩放 · 拖拽移动 · 左右切换 · Esc 退出</div>
+        <div class="md:hidden absolute bottom-20 left-0 right-0 text-center text-[#6b6967] text-xs pointer-events-none" data-i18n="viewer_mobile_hint">双指缩放 · 左右滑动切换</div>
+    </div>
+
+    <script>
+// ===== i18n Internationalization System =====
+(function() {
+    const I18N_STATIC = {
+    "nav_name": {
+        "zh": "石易鑫 / SHI YIXIN",
+        "en": "SHI YIXIN / Shi Yixin"
+    },
+    "nav_works": {
+        "zh": "作品",
+        "en": "Works"
+    },
+    "nav_workflow": {
+        "zh": "工作流",
+        "en": "Workflow"
+    },
+    "nav_contact": {
+        "zh": "合作",
+        "en": "Contact"
+    },
+    "nav_back_home": {
+        "zh": "← 返回首页",
+        "en": "← Home"
+    },
+    "nav_contact_link": {
+        "zh": "联系",
+        "en": "Contact"
+    },
+    "hero_subtitle": {
+        "zh": "Interior Visualization Designer",
+        "en": "Interior Visualization Designer"
+    },
+    "hero_title_line1": {
+        "zh": "空间视觉",
+        "en": "Spatial Visual"
+    },
+    "hero_title_line2": {
+        "zh": "叙事设计",
+        "en": "Narrative Design"
+    },
+    "hero_desc": {
+        "zh": "专注工装与商业空间的氛围表达。以3ds Max、VRay为核心工具，高效率输出写实渲染，强调空间情绪与设计叙事。",
+        "en": "Specializing in atmosphere-driven commercial and hospitality space visualization. Using 3ds Max and VRay as core tools to deliver high-efficiency photorealistic rendering, with emphasis on spatial mood and design storytelling."
+    },
+    "hero_btn_works": {
+        "zh": "查看作品",
+        "en": "View Works"
+    },
+    "hero_btn_contact": {
+        "zh": "项目委托",
+        "en": "Project Inquiry"
+    },
+    "hero_scroll": {
+        "zh": "SCROLL",
+        "en": "SCROLL"
+    },
+    "about_label": {
+        "zh": "Design Philosophy",
+        "en": "Design Philosophy"
+    },
+    "about_title_line1": {
+        "zh": "让空间在光影中",
+        "en": "Let Space Narrate"
+    },
+    "about_title_line2": {
+        "zh": "自然叙事",
+        "en": "Through Light & Shadow"
+    },
+    "about_p1": {
+        "zh": "环境艺术设计背景，专注商业空间、酒店改造与品牌展厅的视觉化呈现。我相信好的效果图不止于写实，更应该传递空间的情绪与使用场景。",
+        "en": "With a background in environmental art design, I specialize in visualizing commercial spaces, hotel renovations, and brand showrooms. I believe great renderings go beyond photorealism — they should convey the mood and lived experience of a space."
+    },
+    "about_p2": {
+        "zh": "熟练运用3ds Max与VRay建立标准化高效工作流，从建模、灯光到后期输出，能够快速配合设计团队完成方案视觉化，以效率驱动创意落地。",
+        "en": "Proficient in 3ds Max and VRay with standardized, high-efficiency workflows — from modeling and lighting to post-production. I collaborate seamlessly with design teams to bring concepts to life, driven by speed without compromise."
+    },
+    "tag_modeling": {
+        "zh": "3ds Max 高效建模",
+        "en": "3ds Max Efficient Modeling"
+    },
+    "tag_rendering": {
+        "zh": "VRay 写实渲染",
+        "en": "VRay Photorealistic Rendering"
+    },
+    "tag_ai": {
+        "zh": "AI辅助工作流",
+        "en": "AI-Assisted Workflow"
+    },
+    "works_label": {
+        "zh": "Selected Projects",
+        "en": "Selected Projects"
+    },
+    "works_title": {
+        "zh": "代表作品",
+        "en": "Featured Works"
+    },
+    "works_btn_all": {
+        "zh": "查看所有作品 →",
+        "en": "View All Projects →"
+    },
+    "wf_label": {
+        "zh": "High Efficiency Workflow",
+        "en": "High Efficiency Workflow"
+    },
+    "wf_title_line1": {
+        "zh": "高效率视觉工作流",
+        "en": "High-Efficiency"
+    },
+    "wf_title_line2": {
+        "zh": "（空，合并为一行）",
+        "en": "Visual Workflow"
+    },
+    "wf_title": {
+        "zh": "高效率视觉工作流",
+        "en": "High-Efficiency Visual Workflow"
+    },
+    "wf_desc": {
+        "zh": "从CAD到最终渲染输出，建立标准化的材质库与灯光预设，大幅压缩制作周期。平均工装空间3-5天完成全案视觉表达，且保证写实质感。",
+        "en": "From CAD to final render output: standardized material libraries and lighting presets drastically shorten production cycles. Average commercial space projects are fully visualized in 3–5 days, all while maintaining photorealistic quality."
+    },
+    "wf_step1_title": {
+        "zh": "01 / 快速建模",
+        "en": "01 / Rapid Modeling"
+    },
+    "wf_step1_desc": {
+        "zh": "高效的商业空间拓扑与曲面建模，适应频繁方案修改。",
+        "en": "Efficient topology and surface modeling for commercial spaces, adaptable to frequent design revisions."
+    },
+    "wf_step2_title": {
+        "zh": "02 / VRay渲染管线",
+        "en": "02 / VRay Render Pipeline"
+    },
+    "wf_step2_desc": {
+        "zh": "自研灯光体系与材质库，保障出图效率的同时维持照片级真实感。",
+        "en": "Proprietary lighting system and material library ensuring efficiency without sacrificing photorealism."
+    },
+    "wf_step3_title": {
+        "zh": "03 / AI辅助流程",
+        "en": "03 / AI-Assisted Workflow"
+    },
+    "wf_step3_desc": {
+        "zh": "概念阶段快速生成氛围参考，缩短前期沟通成本，扩展创意边界。",
+        "en": "Rapid mood reference generation during concept phase, reducing upfront communication costs and expanding creative possibilities."
+    },
+    "wf_step4_title": {
+        "zh": "04 / 空间情绪表达",
+        "en": "04 / Spatial Mood Expression"
+    },
+    "wf_step4_desc": {
+        "zh": "通过镜头构图、材料质感与光影氛围，强化设计的商业叙事能力。",
+        "en": "Strengthening commercial narrative through camera composition, material texture, and lighting atmosphere."
+    },
+    "contact_label": {
+        "zh": "Start a project",
+        "en": "Start a Project"
+    },
+    "contact_title": {
+        "zh": "项目委托",
+        "en": "Project Inquiry"
+    },
+    "contact_subdesc": {
+        "zh": "填写以下信息，我会在24小时内与你沟通具体需求与报价。",
+        "en": "Fill in the details below and I'll get back to you within 24 hours to discuss specific needs and pricing."
+    },
+    "form_name": {
+        "zh": "你的姓名 / 公司",
+        "en": "Your Name / Company"
+    },
+    "form_phone": {
+        "zh": "微信 / 手机号",
+        "en": "WeChat / Phone"
+    },
+    "form_type_label": {
+        "zh": "项目类型",
+        "en": "Project Type"
+    },
+    "form_type1": {
+        "zh": "工装 / 商业空间",
+        "en": "Commercial Space"
+    },
+    "form_type2": {
+        "zh": "家装 / 住宅空间",
+        "en": "Residential Space"
+    },
+    "form_type3": {
+        "zh": "其他 / 咨询",
+        "en": "Other / Consultation"
+    },
+    "form_area": {
+        "zh": "空间面积 / 大约预算",
+        "en": "Area / Approx. Budget"
+    },
+    "form_msg": {
+        "zh": "简单描述项目需求（风格、角度数量、特殊要求等）",
+        "en": "Briefly describe project requirements (style, number of views, special requests, etc.)"
+    },
+    "form_submit": {
+        "zh": "提交合作意向 →",
+        "en": "Submit Inquiry →"
+    },
+    "form_note": {
+        "zh": "提交后我将尽快通过微信/电话联系您，请留意消息。",
+        "en": "I'll contact you via WeChat/phone shortly after submission. Please stay tuned."
+    },
+    "footer_copyright": {
+        "zh": "© 2025 石易鑫 — 空间视觉设计工作室 | 基于3ds Max & VRay 高效率工作流",
+        "en": "© 2025 SHI YIXIN — Spatial Visualization Design Studio | Powered by 3ds Max & VRay"
+    },
+    "footer_email": {
+        "zh": "Email: 1250027279@qq.com",
+        "en": "Email: 1250027279@qq.com"
+    },
+    "footer_xhs": {
+        "zh": "小红书: Shi_YX",
+        "en": "Xiaohongshu: Shi_YX"
+    },
+    "mobile_menu_alert": {
+        "zh": "导航：点击顶部作品/工作流/合作可快速跳转。",
+        "en": "Navigation: Tap Works / Workflow / Contact to jump quickly."
+    },
+    "modal_project_gallery": {
+        "zh": "项目图集",
+        "en": "Project Gallery"
+    },
+    "modal_click_hint": {
+        "zh": "点击图片可全屏缩放",
+        "en": "Click image for fullscreen zoom"
+    },
+    "modal_software": {
+        "zh": "软件工具",
+        "en": "Software"
+    },
+    "modal_responsibility": {
+        "zh": "负责内容",
+        "en": "Role"
+    },
+    "modal_full_desc": {
+        "zh": "项目描述",
+        "en": "Description"
+    },
+    "modal_concept": {
+        "zh": "设计概念",
+        "en": "Design Concept"
+    },
+    "modal_analysis": {
+        "zh": "空间分析",
+        "en": "Spatial Analysis"
+    },
+    "modal_detail_title": {
+        "zh": "项目详情",
+        "en": "Project Details"
+    },
+    "viewer_desktop_hint": {
+        "zh": "鼠标滚轮缩放 · 拖拽移动 · 左右切换 · Esc 退出",
+        "en": "Scroll to zoom · Drag to pan · Arrow keys to switch · Esc to close"
+    },
+    "viewer_mobile_hint": {
+        "zh": "双指缩放 · 左右滑动切换",
+        "en": "Pinch to zoom · Swipe to switch"
+    },
+    "all_title": {
+        "zh": "全部作品",
+        "en": "All Projects"
+    },
+    "all_subtitle": {
+        "zh": "工装 · 商业空间 | 家装 · 居住空间",
+        "en": "Commercial · Hospitality | Residential · Living Spaces"
+    },
+    "all_footer_desc": {
+        "zh": "3ds Max / VRay 渲染师 · 空间视觉表现",
+        "en": "3ds Max / VRay Rendering Artist · Spatial Visual Expression"
+    },
+    "all_footer_wechat": {
+        "zh": "微信：SYX_xiaoguotu",
+        "en": "WeChat: SYX_xiaoguotu"
+    },
+    "all_footer_xhs": {
+        "zh": "小红书：9918481452",
+        "en": "Xiaohongshu: 9918481452"
+    },
+    "all_footer_copyright": {
+        "zh": "© 2025 石易鑫 · 高效视觉工作流 · 接私单咨询",
+        "en": "© 2025 SHI YIXIN · High-Efficiency Workflow · Freelance Inquiries"
+    },
+    "all_modal_efficiency": {
+        "zh": "⚡ 高效率工作流：标准化材质/灯光预设，快速输出高品质效果图。",
+        "en": "⚡ High-Efficiency Workflow: Standardized material/lighting presets for fast, high-quality renders."
+    },
+    "all_gallery_hint": {
+        "zh": "项目图集 (点击图片放大查看)",
+        "en": "Project Gallery (Click to enlarge)"
+    },
+    "all_swipe_hint": {
+        "zh": "← 滑动浏览 → 点击图片可放大缩放",
+        "en": "← Swipe to browse → Click to zoom"
+    },
+    "all_modal_full_desc": {
+        "zh": "◈ 完整描述",
+        "en": "◈ Full Description"
+    },
+    "all_modal_concept": {
+        "zh": "◈ 设计概念",
+        "en": "◈ Design Concept"
+    },
+    "all_modal_analysis": {
+        "zh": "◈ 空间分析",
+        "en": "◈ Spatial Analysis"
+    },
+    "lang_toggle_label": {
+        "zh": "EN",
+        "en": "中"
+    }
+};
+    const I18N_PROJECTS = {
+    "residence": {
+        "type": {
+            "zh": "居住空间 / 自然主义",
+            "en": "Residential / Naturalism"
+        },
+        "title": {
+            "zh": "原木静谧住宅",
+            "en": "Luminous Timber Residence"
+        },
+        "desc": {
+            "zh": "大量使用原木格栅与微水泥，暖色灯光营造沉稳治愈氛围。LDK一体化布局增强家庭成员互动，深色横梁与光影层次提升空间质感。",
+            "en": "Extensive use of timber slats and micro-cement, with warm lighting creating a calming, restorative atmosphere. Open-plan LDK layout enhances family interaction, while dark beams and layered light-shadow interplay elevate spatial texture."
+        },
+        "tags": {
+            "zh": "日式禅意 · 极简",
+            "en": "Japanese Zen · Minimalist"
+        },
+        "fullDesc": {
+            "zh": "原木格栅、微水泥与暖光结合，打造治愈系居住空间。LDK一体化增强通透感，深色横梁提升层次。",
+            "en": "Timber slats, micro-cement, and warm lighting combine to create a healing residential space. Open-plan LDK enhances transparency; dark beams deepen spatial layering."
+        },
+        "concept": {
+            "zh": "日式禅意 + 现代极简，温润光影。",
+            "en": "Japanese Zen + Modern Minimalism, warm light and shadow."
+        },
+        "analysis": {
+            "zh": "动静分区明确，收纳系统隐形化，卧室强调私密与柔软。",
+            "en": "Clear zoning between active and quiet areas, concealed storage systems, bedrooms emphasizing privacy and softness."
+        },
+        "responsibility": {
+            "zh": "全屋建模与渲染",
+            "en": "Full-house modeling and rendering"
+        },
+        "btn": {
+            "zh": "查看完整案例 →",
+            "en": "View Full Case →"
+        }
+    },
+    "museum": {
+        "type": {
+            "zh": "文化展馆 / 品牌空间",
+            "en": "Cultural Museum / Brand Space"
+        },
+        "title": {
+            "zh": "可口可乐博物馆 · 云南",
+            "en": "Coca-Cola Museum · Yunnan"
+        },
+        "desc": {
+            "zh": "融合民族特色与现代工业美学，以红白主色结合在地图案，打造沉浸式品牌体验。动线叙事结合光影互动，让参观者感受品牌历史与地域文化。",
+            "en": "Blending ethnic motifs with modern industrial aesthetics, using signature red-white palette and local patterns to craft an immersive brand experience. Curated circulation and interactive lighting guide visitors through brand heritage and regional culture."
+        },
+        "tags": {
+            "zh": "工业现代 · 文化融合",
+            "en": "Industrial Modern · Cultural Fusion"
+        },
+        "fullDesc": {
+            "zh": "红白主色调搭配云南民族元素，沉浸式动线结合光影互动，展现品牌历史与在地文化。",
+            "en": "Red-white palette paired with Yunnan ethnic elements; immersive circulation with interactive lighting showcases brand history and local culture."
+        },
+        "concept": {
+            "zh": "工业现代 + 地域文化，叙事性体验。",
+            "en": "Industrial Modern + Regional Culture, narrative-driven experience."
+        },
+        "analysis": {
+            "zh": "时间轴动线，重点展示区结合多媒体装置。",
+            "en": "Timeline-based circulation, key exhibition zones integrated with multimedia installations."
+        },
+        "responsibility": {
+            "zh": "合作建模、灯光渲染",
+            "en": "Collaborative modeling, lighting and rendering"
+        },
+        "btn": {
+            "zh": "查看完整案例 →",
+            "en": "View Full Case →"
+        }
+    },
+    "miao": {
+        "type": {
+            "zh": "文化展馆 / 民族叙事",
+            "en": "Cultural Gallery / Ethnic Narrative"
+        },
+        "title": {
+            "zh": "苗韵展馆",
+            "en": "Miao Rhythm Gallery"
+        },
+        "desc": {
+            "zh": "深植于苗族文化底蕴，粗犷原石堆叠与现代金属材质进行空间叙事。沉浸式暗调光源搭配图腾纹理浮雕墙，凸显文化的厚重与神秘感。",
+            "en": "Rooted in Miao cultural heritage, raw stone stacks dialogue with modern metal for spatial storytelling. Immersive low-key lighting paired with totemic relief walls accentuates cultural gravitas and mystique."
+        },
+        "tags": {
+            "zh": "原石 · 金属 · 暗调",
+            "en": "Raw Stone · Metal · Low-Key"
+        },
+        "fullDesc": {
+            "zh": "展馆设计深植于苗族文化底蕴，运用粗犷原石堆叠与现代金属材质进行空间叙事。内部展示区采用沉浸式暗调光源设计，辅以极具民族特征的图腾纹理浮雕墙，凸显文化的厚重与神秘感。",
+            "en": "Gallery design deeply embedded in Miao culture, using rugged raw stone stacks and modern metal for spatial narrative. Interior exhibition zones employ immersive low-key lighting alongside totemic relief walls, highlighting cultural depth and mystery."
+        },
+        "concept": {
+            "zh": "原石 + 金属碰撞叙事，暗调光源凸显苗族文化厚重与神秘。",
+            "en": "Raw stone + metal collision narrative; low-key lighting accentuates Miao cultural gravity and mystery."
+        },
+        "analysis": {
+            "zh": "沉浸式展示动线，图腾浮雕墙与光影引导串联民族文明脉络。",
+            "en": "Immersive exhibition circulation; totemic relief walls and guided lighting weave through ethnic cultural lineage."
+        },
+        "responsibility": {
+            "zh": "展馆效果图全案",
+            "en": "Full gallery visualization suite"
+        },
+        "btn": {
+            "zh": "查看完整案例 →",
+            "en": "View Full Case →"
+        }
+    },
+    "office": {
+        "type": {
+            "zh": "办公空间 / 生态现代主义",
+            "en": "Office Space / Eco-Modernism"
+        },
+        "title": {
+            "zh": "厦门可口可乐办公楼",
+            "en": "Xiamen Coca-Cola Office Building"
+        },
+        "desc": {
+            "zh": "玻璃幕墙与立体绿植墙彰显自然与可持续发展。开放协作区与独立舱结合，动线流畅。中性灰基底点缀品牌红，兼具人文关怀与高效生产力。",
+            "en": "Glass curtain walls and vertical greenery embody nature and sustainability. Open collaboration zones paired with private pods ensure fluid circulation. A neutral gray base accented with brand red balances human-centric design with high productivity."
+        },
+        "tags": {
+            "zh": "生态现代 · 品牌融合",
+            "en": "Eco-Modern · Brand Integration"
+        },
+        "fullDesc": {
+            "zh": "以\"生态现代主义\"为核心理念，融合可口可乐品牌红与太古沉稳色调。外观采用通透玻璃幕墙与立体绿植墙，室内开放协作区与静谧独立舱组合，动线流畅。",
+            "en": "Centered on 'Eco-Modernism,' merging Coca-Cola brand red with Swire's composed palette. Transparent glass façades and living green walls outside; open collaboration areas and quiet pods inside — all with fluid circulation."
+        },
+        "concept": {
+            "zh": "生态现代主义，玻璃幕墙 + 品牌红点缀，开放协作办公。",
+            "en": "Eco-Modernism, glass curtain walls + brand red accents, open collaborative workspace."
+        },
+        "analysis": {
+            "zh": "开放区+独立舱组合，品牌色点缀中性灰基底，动线流畅。",
+            "en": "Open zones + private pods; brand colors accent a neutral gray base; fluid circulation."
+        },
+        "responsibility": {
+            "zh": "合作建模、渲染后期",
+            "en": "Collaborative modeling, rendering and post-production"
+        },
+        "btn": {
+            "zh": "查看完整案例 →",
+            "en": "View Full Case →"
+        }
+    },
+    "c1": {
+        "title": {
+            "zh": "书山广场改造",
+            "en": "Book Mountain Plaza Renovation"
+        },
+        "type": {
+            "zh": "工装 / 城市公共空间",
+            "en": "Commercial / Urban Public Space"
+        },
+        "shortDesc": {
+            "zh": "整体秉持现代极简与人文关怀的设计理念。通过流畅的线条与通透的布局，营造自由开放的城市公共客厅。",
+            "en": "Embracing modern minimalism and human-centric design, fluid lines and transparent layouts create a free and open urban public living room."
+        },
+        "fullDesc": {
+            "zh": "整体秉持现代极简与人文关怀的设计理念。通过引入流畅的线条与通透的空间布局，打破原有场地的封闭感，营造出自由开放的城市公共客厅。精选高品质石材与耐候材质，搭配立体绿植系统，实现商业活力与生态休闲的完美融合。",
+            "en": "Embracing modern minimalism and human-centric design, fluid lines and open layouts dissolve the site's original enclosure, creating a free-flowing urban public living room. Premium stone and weather-resistant materials paired with a vertical greenery system achieve a seamless blend of commercial vitality and ecological leisure."
+        },
+        "concept": {
+            "zh": "现代极简 + 人文关怀，流畅线条与通透布局营造城市公共客厅。",
+            "en": "Modern minimalism + human-centric design; fluid lines and open layouts craft an urban public living room."
+        },
+        "analysis": {
+            "zh": "立体绿植系统 + 耐候材质，动线串联商业活力与生态休闲区域。",
+            "en": "Vertical greenery + weather-resistant materials; circulation routes link commercial vitality with ecological leisure zones."
+        },
+        "responsibility": {
+            "zh": "全案效果图制作",
+            "en": "Full project visualization production"
+        }
+    },
+    "c2": {
+        "title": {
+            "zh": "咖啡厅",
+            "en": "Café"
+        },
+        "type": {
+            "zh": "工装 / 餐饮空间",
+            "en": "Commercial / F&B Space"
+        },
+        "shortDesc": {
+            "zh": "工业风与暖调自然主义融合，营造松弛慵懒氛围。",
+            "en": "Industrial style meets warm naturalism, crafting a relaxed and cozy ambiance."
+        },
+        "fullDesc": {
+            "zh": "设计风格融合工业风与暖调自然主义。裸露的混凝土顶面与温润的原木家具形成质感对比，搭配藤编座椅与柔和暖光照明，营造出松弛慵懒的氛围。",
+            "en": "Design blends industrial aesthetics with warm naturalism. Exposed concrete ceilings contrast with warm timber furniture; rattan seating and soft warm lighting create a laid-back, inviting atmosphere."
+        },
+        "concept": {
+            "zh": "工业风 + 暖调自然主义",
+            "en": "Industrial + Warm Naturalism"
+        },
+        "analysis": {
+            "zh": "灵活分区满足商务社交与独处需求",
+            "en": "Flexible zoning accommodates both business socializing and solo retreats."
+        },
+        "responsibility": {
+            "zh": "建模渲染全流程",
+            "en": "Full modeling and rendering pipeline"
+        }
+    },
+    "c3": {
+        "title": {
+            "zh": "学校大门改造",
+            "en": "School Gate Renovation"
+        },
+        "type": {
+            "zh": "工装 / 教育建筑",
+            "en": "Commercial / Educational Architecture"
+        },
+        "shortDesc": {
+            "zh": "现代几何体块，庄重仪式感，打造校园文化名片。",
+            "en": "Modern geometric volumes with ceremonial gravitas, creating a signature campus cultural landmark."
+        },
+        "fullDesc": {
+            "zh": "设计紧扣庄重、智慧与开放的教育主题。采用简洁大气的现代几何体块，象征知识的殿堂与严谨的治学精神。入口广场结合绿植与地标性雕塑，强化仪式感和校园辨识度。",
+            "en": "Design anchors on solemnity, wisdom, and openness — core educational themes. Clean, bold modern geometric volumes symbolize the hall of knowledge and scholarly rigor. The entrance plaza integrates greenery and a landmark sculpture, reinforcing ceremony and campus identity."
+        },
+        "concept": {
+            "zh": "现代几何体块 + 庄重仪式感",
+            "en": "Modern geometric volumes + ceremonial gravitas"
+        },
+        "analysis": {
+            "zh": "人车分流优化通行效率，绿植与雕塑强化校园文化",
+            "en": "Pedestrian-vehicle separation optimizes flow; greenery and sculpture strengthen campus culture."
+        },
+        "responsibility": {
+            "zh": "全案效果图表现",
+            "en": "Full visualization production"
+        }
+    },
+    "c4": {
+        "title": {
+            "zh": "户外亲子公园",
+            "en": "Outdoor Family Park"
+        },
+        "type": {
+            "zh": "工装 / 户外休闲",
+            "en": "Commercial / Outdoor Leisure"
+        },
+        "shortDesc": {
+            "zh": "现代露营美学，房车+天幕营造微度假松弛氛围。",
+            "en": "Modern glamping aesthetics with RVs and canopies crafting a micro-vacation vibe."
+        },
+        "fullDesc": {
+            "zh": "设计融合现代露营美学与自然景观，以房车和天幕为核心元素，营造自由松弛的微度假氛围。空间利用原木铺装、暖色串灯与烧烤设施构建休闲动线，结合户外影院区域提升互动体验。",
+            "en": "Design fuses modern camping aesthetics with natural landscapes, centering on RVs and canopy tents to create a free-spirited micro-vacation atmosphere. Timber decking, warm string lights, and BBQ stations form the leisure circuit, while an outdoor cinema zone elevates interactive experiences."
+        },
+        "concept": {
+            "zh": "现代露营美学，房车+天幕营造微度假松弛氛围。",
+            "en": "Modern camping aesthetics; RVs + canopy tents craft a relaxed micro-vacation atmosphere."
+        },
+        "analysis": {
+            "zh": "原木铺装 + 暖色串灯 + 户外影院，构建家庭互动休闲动线。",
+            "en": "Timber decking + warm string lights + outdoor cinema build a family-oriented leisure circuit."
+        },
+        "responsibility": {
+            "zh": "场景建模与渲染",
+            "en": "Scene modeling and rendering"
+        }
+    },
+    "c5": {
+        "title": {
+            "zh": "景观公园",
+            "en": "Landscape Park"
+        },
+        "type": {
+            "zh": "工装 / 城市景观",
+            "en": "Commercial / Urban Landscape"
+        },
+        "shortDesc": {
+            "zh": "现代园林 + 极简线条，四季植被与几何铺装构建节奏感景观。",
+            "en": "Modern gardens + minimalist lines; seasonal planting and geometric paving create rhythmic landscapes."
+        },
+        "fullDesc": {
+            "zh": "采用清新明快的现代园林风格，通过丰富的四季植被色彩与几何化的铺装拼花，构建节奏感强烈的景观轴线。空间以极简的线条元素与通透的木质廊架打破传统公园的沉闷，巧妙结合雕塑水景与现代休憩设施。",
+            "en": "Adopting a fresh, vibrant modern garden style, rich seasonal planting palettes and geometric paving patterns build a strongly rhythmic landscape axis. Minimalist lines and airy timber pergolas break the monotony of traditional parks, skillfully pairing sculptural water features with contemporary rest facilities."
+        },
+        "concept": {
+            "zh": "现代园林 + 极简线条，四季植被与几何铺装构建节奏感景观。",
+            "en": "Modern gardens + minimalist lines; seasonal planting and geometric paving create rhythmic landscapes."
+        },
+        "analysis": {
+            "zh": "木质廊架 + 雕塑水景打破沉闷，生态活力与建筑美感兼具。",
+            "en": "Timber pergolas + sculptural water features disrupt monotony, balancing ecological vitality with architectural elegance."
+        },
+        "responsibility": {
+            "zh": "景观效果图全流程",
+            "en": "Full landscape visualization pipeline"
+        }
+    },
+    "c6": {
+        "title": {
+            "zh": "苗韵展馆",
+            "en": "Miao Rhythm Gallery"
+        },
+        "type": {
+            "zh": "工装 / 文化展馆",
+            "en": "Commercial / Cultural Gallery"
+        },
+        "shortDesc": {
+            "zh": "原石+金属碰撞叙事，暗调光源凸显苗族文化厚重与神秘。",
+            "en": "Raw stone + metal collision narrative; low-key lighting highlights Miao cultural depth and mystery."
+        },
+        "fullDesc": {
+            "zh": "展馆设计深植于苗族文化底蕴，运用粗犷原石堆叠与现代金属材质进行空间叙事。内部展示区采用沉浸式暗调光源设计，辅以极具民族特征的图腾纹理浮雕墙，凸显文化的厚重与神秘感。",
+            "en": "Gallery design deeply embedded in Miao culture, using rugged raw stone stacks and modern metal for spatial narrative. Interior exhibition zones employ immersive low-key lighting alongside totemic relief walls, highlighting cultural depth and mystery."
+        },
+        "concept": {
+            "zh": "原石 + 金属碰撞叙事，暗调光源凸显苗族文化厚重与神秘。",
+            "en": "Raw stone + metal collision narrative; low-key lighting accentuates Miao cultural gravity and mystery."
+        },
+        "analysis": {
+            "zh": "沉浸式展示动线，图腾浮雕墙与光影引导串联民族文明脉络。",
+            "en": "Immersive exhibition circulation; totemic relief walls and guided lighting weave through ethnic cultural lineage."
+        },
+        "responsibility": {
+            "zh": "展馆效果图全案",
+            "en": "Full gallery visualization suite"
+        }
+    },
+    "l1": {
+        "title": {
+            "zh": "云南可口可乐博物馆",
+            "en": "Yunnan Coca-Cola Museum"
+        },
+        "type": {
+            "zh": "工装 / 文化博物馆",
+            "en": "Commercial / Cultural Museum"
+        },
+        "shortDesc": {
+            "zh": "现代工业风融合生态理念，沉浸式观展动线。",
+            "en": "Modern industrial style fused with ecological ethos, immersive exhibition circulation."
+        },
+        "fullDesc": {
+            "zh": "现代工业风融合生态理念。外观采用简洁几何体量，室内以灰白为主色调，搭配绿色植物与木质元素，营造自然与科技交织的空间氛围。材质上大量运用混凝土肌理板、金属框架及LED灯光系统，空间布局开放通透，流线型动线引导访客沉浸式观展。",
+            "en": "Modern industrial style meets ecological principles. Clean geometric volumes define the exterior, while a gray-white interior palette accented with greenery and timber creates a nature-meets-technology ambiance. Concrete texture panels, metal frameworks, and LED lighting systems dominate the material palette; open, transparent layouts and streamlined circulation guide immersive visitor journeys."
+        },
+        "concept": {
+            "zh": "现代工业风 + 生态理念，灰白主调融合绿植与木质元素。",
+            "en": "Modern industrial + ecological ethos; gray-white palette fused with greenery and timber."
+        },
+        "analysis": {
+            "zh": "沉浸式观展动线，LED灯光与混凝土肌理板强化品牌叙事。",
+            "en": "Immersive exhibition circulation; LED lighting and textured concrete panels reinforce brand storytelling."
+        },
+        "responsibility": {
+            "zh": "合作建模、灯光渲染",
+            "en": "Collaborative modeling, lighting and rendering"
+        }
+    },
+    "l2": {
+        "title": {
+            "zh": "厦门可口可乐办公楼",
+            "en": "Xiamen Coca-Cola Office Building"
+        },
+        "type": {
+            "zh": "工装 / 品牌办公",
+            "en": "Commercial / Brand Office"
+        },
+        "shortDesc": {
+            "zh": "生态现代主义，玻璃幕墙+品牌红点缀，开放协作办公。",
+            "en": "Eco-Modernism, glass curtain walls + brand red accents, open collaborative workspace."
+        },
+        "fullDesc": {
+            "zh": "以‘生态现代主义’为核心理念，融合可口可乐品牌红与太古沉稳色调。外观采用通透玻璃幕墙与立体绿植墙，彰显自然与可持续发展理念；室内以开放协作区与静谧独立舱组合，动线流畅、功能复合。",
+            "en": "Centered on 'Eco-Modernism,' merging Coca-Cola brand red with Swire's composed palette. Transparent glass façades and living green walls outside; open collaboration areas and quiet pods inside — all with fluid circulation and multifunctional zoning."
+        },
+        "concept": {
+            "zh": "生态现代主义，玻璃幕墙 + 品牌红点缀，开放协作办公。",
+            "en": "Eco-Modernism, glass curtain walls + brand red accents, open collaborative workspace."
+        },
+        "analysis": {
+            "zh": "开放区+独立舱组合，品牌色点缀中性灰基底，动线流畅。",
+            "en": "Open zones + private pods; brand colors accent a neutral gray base; fluid circulation."
+        },
+        "responsibility": {
+            "zh": "合作建模、渲染后期",
+            "en": "Collaborative modeling, rendering and post-production"
+        }
+    },
+    "l3": {
+        "title": {
+            "zh": "湛江可口可乐饭堂翻新",
+            "en": "Zhanjiang Coca-Cola Canteen Renovation"
+        },
+        "type": {
+            "zh": "工装 / 餐饮改造",
+            "en": "Commercial / F&B Renovation"
+        },
+        "shortDesc": {
+            "zh": "红白主色调+原木金属，品牌IP融合年轻化美学。",
+            "en": "Red-white palette + timber and metal; brand IP fused with youthful aesthetics."
+        },
+        "fullDesc": {
+            "zh": "现代活力餐饮空间设计。以可口可乐经典红白为主色调，搭配原木与哑光金属材质，营造清爽时尚的用餐氛围。墙面以艺术化手法植入品牌元素，户外区设置巨型瓶身装置与霓虹灯标，强化视觉记忆点。",
+            "en": "Vibrant modern dining space design. Coca-Cola's classic red-white palette pairs with timber and matte metal for a fresh, stylish ambiance. Artistic brand elements adorn the walls, while a giant bottle installation and neon signage in the outdoor zone create strong visual anchors."
+        },
+        "concept": {
+            "zh": "红白主色调 + 原木金属，品牌IP融合年轻化美学。",
+            "en": "Red-white palette + timber and metal; brand IP fused with youthful aesthetics."
+        },
+        "analysis": {
+            "zh": "功能分区优化，户外巨型瓶身装置+霓虹灯标强化视觉记忆。",
+            "en": "Optimized functional zoning; giant outdoor bottle installation + neon signage reinforce visual recall."
+        },
+        "responsibility": {
+            "zh": "独立全案建模、渲染、后期",
+            "en": "Solo full-project modeling, rendering, and post-production"
+        }
+    },
+    "r1": {
+        "title": {
+            "zh": "原木静谧住宅",
+            "en": "Luminous Timber Residence"
+        },
+        "type": {
+            "zh": "家装 / 原木自然",
+            "en": "Residential / Natural Timber"
+        },
+        "shortDesc": {
+            "zh": "日式禅意+现代简约，原木格栅与暖光营造返璞归真氛围。",
+            "en": "Japanese Zen + modern simplicity; timber slats and warm light create a back-to-nature atmosphere."
+        },
+        "fullDesc": {
+            "zh": "以自然原木为核心元素，融合日式禅意与现代简约风格。空间采用大量木质格栅、肌理感墙面和原木家具，营造温暖、宁静的居住氛围。暖色调灯光与原木材质相得益彰，形成柔和的光影层次。",
+            "en": "Natural timber as the core element, blending Japanese Zen with modern minimalism. Extensive timber slats, textured walls, and solid wood furniture create a warm, serene living atmosphere. Warm lighting complements the timber, producing soft, layered light and shadow."
+        },
+        "concept": {
+            "zh": "日式禅意 + 现代简约，原木格栅与暖光营造返璞归真氛围。",
+            "en": "Japanese Zen + modern simplicity; timber slats and warm light create a back-to-nature atmosphere."
+        },
+        "analysis": {
+            "zh": "LDK一体化布局，深色微水泥与横梁结构增强空间层次。",
+            "en": "Open-plan LDK layout; dark micro-cement and beam structures enhance spatial layering."
+        },
+        "responsibility": {
+            "zh": "全屋建模与渲染",
+            "en": "Full-house modeling and rendering"
+        }
+    },
+    "r2": {
+        "title": {
+            "zh": "宋氏美学家居设计",
+            "en": "Song-Style Aesthetic Home"
+        },
+        "type": {
+            "zh": "家装 / 现代轻奢",
+            "en": "Residential / Modern Luxury"
+        },
+        "shortDesc": {
+            "zh": "白色高光+原木饰面+线性灯带，精致轻奢质感。",
+            "en": "White high-gloss + timber veneer + linear LED strips, refined luxury aesthetic."
+        },
+        "fullDesc": {
+            "zh": "采用现代轻奢风格，注重精致细节与高级感营造。空间以白色高光柜体与原木饰面为主调，搭配竖向木饰面、灰色调软包等材质，形成简洁而富有层次感的视觉效果。嵌入式照明与线性灯带巧妙结合，提供充足且柔和的光线。",
+            "en": "Modern luxury style emphasizing refined detail and premium sensibility. White high-gloss cabinetry and timber veneer dominate the palette, paired with vertical wood paneling and gray upholstery for a clean, layered visual effect. Recessed lighting and linear LED strips combine to deliver ample, soft illumination."
+        },
+        "concept": {
+            "zh": "白色高光 + 原木饰面 + 线性灯带，精致轻奢质感。",
+            "en": "White high-gloss + timber veneer + linear LED strips, refined luxury aesthetic."
+        },
+        "analysis": {
+            "zh": "功能美学平衡，嵌入式照明 + 玻璃衣柜提升现代居住体验。",
+            "en": "Balanced functional aesthetics; recessed lighting + glass wardrobes elevate modern living experience."
+        },
+        "responsibility": {
+            "zh": "全案渲染",
+            "en": "Full project rendering"
+        }
+    },
+    "r3": {
+        "title": {
+            "zh": "民宿设计",
+            "en": "Boutique Guesthouse Design"
+        },
+        "type": {
+            "zh": "家装 / 民宿旅居",
+            "en": "Residential / Hospitality"
+        },
+        "shortDesc": {
+            "zh": "日式简约+现代风格，深色木纹与暖光营造宁静旅居。",
+            "en": "Japanese simplicity + modern style; dark wood grain and warm light create a tranquil stay."
+        },
+        "fullDesc": {
+            "zh": "融合了日式简约与现代风格，营造宁静舒适的旅居体验。开放式起居空间以深色木纹、白色织物为主材，搭配暖色调灯光，形成温馨的视觉感受。空间注重自然光线的引入，通过开阔的阳台视野和浅木色家具，将室内外景观有机连接。",
+            "en": "Blending Japanese simplicity with modern style for a serene, comfortable hospitality experience. Open-plan living area features dark wood grain and white textiles paired with warm lighting for a cozy visual feel. Emphasis on natural light through expansive balcony views and light timber furniture organically connects indoor and outdoor landscapes."
+        },
+        "concept": {
+            "zh": "日式简约 + 现代风格，深色木纹与暖光营造宁静旅居。",
+            "en": "Japanese simplicity + modern style; dark wood grain and warm light create a tranquil stay."
+        },
+        "analysis": {
+            "zh": "开放起居 + 开阔阳台，自然光线串联室内外景观。",
+            "en": "Open living + expansive balcony; natural light bridges indoor and outdoor landscapes."
+        },
+        "responsibility": {
+            "zh": "建模灯光渲染",
+            "en": "Modeling, lighting and rendering"
+        }
+    },
+    "r4": {
+        "title": {
+            "zh": "简约家居设计",
+            "en": "Minimalist Home Design"
+        },
+        "type": {
+            "zh": "家装 / 现代极简",
+            "en": "Residential / Modern Minimalist"
+        },
+        "shortDesc": {
+            "zh": "少即是多，白色高光+原木饰面+客餐厨一体。",
+            "en": "Less is more; white high-gloss + timber veneer + open-plan LDK."
+        },
+        "fullDesc": {
+            "zh": "采用现代极简风格，追求空间的高效利用与视觉的纯净感。客餐厨一体化布局通过白色高光柜体与原木饰面的搭配，实现整洁、流畅的空间动线。嵌入式照明提供充足且均匀的光线，营造明亮通透的氛围。",
+            "en": "Modern minimalist style pursuing spatial efficiency and visual purity. The open-plan LDK layout pairs white high-gloss cabinetry with timber veneer for a clean, fluid circulation. Recessed lighting provides even, abundant illumination, creating a bright and airy atmosphere."
+        },
+        "concept": {
+            "zh": "少即是多，白色高光 + 原木饰面 + 客餐厨一体。",
+            "en": "Less is more; white high-gloss + timber veneer + open-plan LDK."
+        },
+        "analysis": {
+            "zh": "高效动线 + 嵌入式均匀照明，极简线条营造明亮通透感。",
+            "en": "Efficient circulation + uniform recessed lighting; minimalist lines create a bright, airy feel."
+        },
+        "responsibility": {
+            "zh": "全屋效果图",
+            "en": "Full-house visualization"
+        }
+    }
+};
+
+    function getLang() {
+        let lang = localStorage.getItem('site-lang');
+        if (!lang) {
+            lang = (navigator.language || '').startsWith('zh') ? 'zh' : 'zh';
+            localStorage.setItem('site-lang', lang);
+        }
+        return lang;
+    }
+
+    function setLang(lang) {
+        localStorage.setItem('site-lang', lang);
+        applyLanguage(lang);
+    }
+
+    function t(dict, key) {
+        const lang = getLang();
+        if (dict[key] && dict[key][lang]) return dict[key][lang];
+        console.warn('i18n missing key:', key, 'lang:', lang);
+        return key;
+    }
+
+    // Expose globally
+    window.i18n = {
+        getLang: getLang,
+        setLang: setLang,
+        t: function(key) { return t(I18N_STATIC, key); },
+        tp: function(projectId, field) {
+            const lang = getLang();
+            if (I18N_PROJECTS[projectId] && I18N_PROJECTS[projectId][field] && I18N_PROJECTS[projectId][field][lang]) {
+                return I18N_PROJECTS[projectId][field][lang];
+            }
+            console.warn('i18n project missing:', projectId, field, lang);
+            return '';
+        }
+    };
+
+    // Apply translations to data-i18n elements
+    function applyLanguage(lang) {
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const key = el.getAttribute('data-i18n');
+            if (I18N_STATIC[key] && I18N_STATIC[key][lang]) {
+                if (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA') {
+                    el.placeholder = I18N_STATIC[key][lang];
+                } else if (el.tagName === 'SELECT') {
+                    // Handle select options
+                } else if (el.tagName === 'OPTION') {
+                    el.textContent = I18N_STATIC[key][lang];
+                } else {
+                    el.textContent = I18N_STATIC[key][lang];
+                }
+            }
+        });
+
+        // Update language toggle button text
+        const toggleBtns = document.querySelectorAll('#langToggle, #langToggleMobile');
+        toggleBtns.forEach(btn => {
+            btn.textContent = lang === 'zh' ? 'EN' : '中';
+        });
+
+        // Trigger custom event for JS-rendered content
+        window.dispatchEvent(new CustomEvent('languageChanged', { detail: { lang: lang } }));
+    }
+
+    // Initial apply
+    document.addEventListener('DOMContentLoaded', function() {
+        applyLanguage(getLang());
+    });
+
+    // Also apply immediately if DOM already loaded
+    if (document.readyState !== 'loading') {
+        applyLanguage(getLang());
+    }
+})();
+
+</script>
+
+<script>
+// 项目详情数据（4个项目，包含主图和画廊图片链接）
+        const projectsData = {
+            residence: {
+                title: "原木静谧住宅",
+                type: "家装 / 自然主义",
+                fullDesc: "原木格栅、微水泥与暖光结合，打造治愈系居住空间。LDK一体化增强通透感，深色横梁提升层次。",
+                concept: "日式禅意 + 现代极简，温润光影。",
+                analysis: "动静分区明确，收纳系统隐形化，卧室强调私密与柔软。",
+                software: "3ds Max, VRay",
+                responsibility: "全屋建模与渲染",
+                images: [
+                    "WebP/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-5249-将生42c74d3b-e3bd-4984-9586-f36efb9082b3成一....webp",
+                    "WebP/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-6281-将生725ad8d6-1649-41b7-a9c8-badfe716c0c8成一....webp",
+                    "WebP/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-7224-将生6ebdfdd4-d413-4ff6-bc3d-45ee71246bf3成一....webp",
+                    "WebP/家居设计/效果图精选/原木风家居设计/jimeng-2026-05-29-8084-将生客餐厨一体(图1)成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，....webp"
+                ]
+            },
+            museum: {
+                title: "可口可乐博物馆 · 云南",
+                type: "文化展馆 / 品牌空间",
+                fullDesc: "红白主色调搭配云南民族元素，沉浸式动线结合光影互动，展现品牌历史与在地文化。",
+                concept: "工业现代 + 地域文化，叙事性体验。",
+                analysis: "时间轴动线，重点展示区结合多媒体装置。",
+                software: "3ds Max, VRay, PS",
+                responsibility: "合作建模、灯光渲染",
+                images: [
+                    "WebP/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-1877-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-4145-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-4616-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-4895-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-6896-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-8347-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-9154-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/云南可口可乐博物馆/jimeng-2026-05-29-9661-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"
+                ]
+            },
+            miao: {
+                title: "苗韵展馆",
+                type: "文化展馆 / 民族叙事",
+                fullDesc: "展馆设计深植于苗族文化底蕴，运用粗犷原石堆叠与现代金属材质进行空间叙事。内部展示区采用沉浸式暗调光源设计，辅以极具民族特征的图腾纹理浮雕墙，凸显文化的厚重与神秘感。",
+                concept: "原石 + 金属碰撞叙事，暗调光源凸显苗族文化厚重与神秘。",
+                analysis: "沉浸式展示动线，图腾浮雕墙与光影引导串联民族文明脉络。",
+                software: "3ds Max, VRay",
+                responsibility: "展馆效果图全案",
+                images: [
+                    "WebP/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-1676-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-3840-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-4022-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-5885-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-7480-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-9268-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-9331-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/商业空间设计/效果图精选/苗韵展馆/jimeng-2026-05-29-9511-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"
+                ]
+            },
+            office: {
+                title: "厦门可口可乐办公楼",
+                type: "办公空间 / 生态现代",
+                fullDesc: "以“生态现代主义”为核心理念，融合可口可乐品牌红与太古沉稳色调。外观采用通透玻璃幕墙与立体绿植墙，室内开放协作区与静谧独立舱组合，动线流畅。",
+                concept: "生态现代主义，玻璃幕墙 + 品牌红点缀，开放协作办公。",
+                analysis: "开放区+独立舱组合，品牌色点缀中性灰基底，动线流畅。",
+                software: "3ds Max, VRay",
+                responsibility: "合作建模、渲染后期",
+                images: [
+                    "WebP/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-2686-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-3589-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-3875-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-4473-将生成一张照片级真实的室外设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-4634-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-5684-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-9352-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp",
+                    "WebP/项目落地/效果图精选/厦门可口可乐公司办公楼设计/jimeng-2026-05-29-9766-将生成一张照片级真实的室内设计渲染图，构图与相机角度完全不变，所有家具保持在完全....webp"
+                ]
+            }
+        };
+
+        // Track current open modal project
+        let currentModalKey = null;
+
+        // 打开模态框
+        function openProjectModal(key) {
+            const p = projectsData[key];
+            if (!p) return;
+            currentModalKey = key;
+            const modal = document.getElementById('projectModal');
+            const content = document.getElementById('modalContent');
+            const galleryHtml = `<div class="mb-6"><h4 class="text-gray-400 text-xs uppercase mb-3" data-i18n="modal_project_gallery">项目图集</h4><div class="modal-gallery">${p.images.map(img => `<img src="${img}" class="gallery-thumb" data-src="${img}" alt="gallery">`).join('')}</div><p class="text-gray-500 text-xs mt-2" data-i18n="modal_click_hint">点击图片可全屏缩放</p></div>`;
+            content.innerHTML = `<div class="grid md:grid-cols-5 gap-6"><div class="md:col-span-3"><h2 class="text-2xl font-light">${window.i18n.tp(key, 'title')}</h2><p class="text-gray-400 text-xs uppercase mt-1">${window.i18n.tp(key, 'type')}</p><div class="space-y-4 text-gray-300 text-sm mt-5"><p><strong class="text-white">${window.i18n.t('modal_full_desc')}</strong><br>${window.i18n.tp(key, 'fullDesc')}</p><p><strong class="text-white">${window.i18n.t('modal_concept')}</strong><br>${window.i18n.tp(key, 'concept')}</p><p><strong class="text-white">${window.i18n.t('modal_analysis')}</strong><br>${window.i18n.tp(key, 'analysis')}</p></div></div><div class="md:col-span-2 bg-white/5 p-4 rounded-xl space-y-3"><div><h4 class="text-white text-sm">${window.i18n.t('modal_software')}</h4><p class="text-gray-400 text-xs">${p.software}</p></div><div><h4 class="text-white text-sm">${window.i18n.t('modal_responsibility')}</h4><p class="text-gray-400 text-xs">${window.i18n.tp(key, 'responsibility')}</p></div></div></div>${galleryHtml}`;
+            modal.classList.remove('invisible', 'opacity-0');
+            document.body.style.overflow = 'hidden';
+            document.querySelectorAll('.gallery-thumb').forEach(img => {
+                img.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const src = img.getAttribute('data-src');
+                    if (src) openFullViewerWithGallery(p.images, src);
+                });
+            });
+        }
+
+        // 全屏图片查看器
+        let currentGalleryImages = [], currentGalleryIndex = 0;
+        const fullViewer = document.getElementById('fullImageViewer');
+        const fullImg = document.getElementById('fullImg');
+        function openFullViewerWithGallery(images, startSrc) {
+            currentGalleryImages = images;
+            currentGalleryIndex = images.findIndex(i => i === startSrc);
+            if (currentGalleryIndex === -1) currentGalleryIndex = 0;
+            fullImg.src = currentGalleryImages[currentGalleryIndex];
+            fullViewer.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            setupDragZoom();
+        }
+        let scale = 1, translateX = 0, translateY = 0, isDraggingZoom = false, startX = 0, startY = 0;
+        function setupDragZoom() {
+            const img = fullImg;
+            const viewerEl = fullViewer;
+            const applyTransform = () => { img.style.transform = `translate(${translateX}px, ${translateY}px) scale(${scale})`; };
+
+            // === Desktop: Mouse Wheel ===
+            function onWheel(e) {
+                e.preventDefault();
+                const delta = e.deltaY > 0 ? 0.9 : 1.1;
+                const newScale = scale * delta;
+                if (newScale > 4 || newScale < 0.5) return;
+                const rect = img.getBoundingClientRect();
+                const mouseX = e.clientX - rect.left, mouseY = e.clientY - rect.top;
+                const originX = mouseX / rect.width, originY = mouseY / rect.height;
+                scale = newScale;
+                const deltaX = (originX - 0.5) * rect.width * (1 - 1/delta);
+                const deltaY = (originY - 0.5) * rect.height * (1 - 1/delta);
+                translateX -= deltaX; translateY -= deltaY;
+                applyTransform();
+            }
+
+            // === Desktop: Mouse Drag ===
+            function onMouseDown(e) { isDraggingZoom = true; startX = e.clientX - translateX; startY = e.clientY - translateY; img.style.cursor = 'grabbing'; e.preventDefault(); }
+            function onMouseMove(e) { if (!isDraggingZoom) return; translateX = e.clientX - startX; translateY = e.clientY - startY; applyTransform(); }
+            function onMouseUp() { isDraggingZoom = false; img.style.cursor = 'grab'; }
+
+            // === Mobile: Touch ===
+            let pinchStartDist = 0, pinchStartScale = 1, panStartX = 0, panStartY = 0;
+            let swipeStartX = 0, swipeStartY = 0, isSwiping = false;
+            function getTouchDist(t1, t2) { return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY); }
+            function onTouchStart(e) {
+                if (e.touches.length === 2) { pinchStartDist = getTouchDist(e.touches[0], e.touches[1]); pinchStartScale = scale; isSwiping = false; }
+                else if (e.touches.length === 1) {
+                    if (scale > 1) { panStartX = e.touches[0].clientX - translateX; panStartY = e.touches[0].clientY - translateY; isSwiping = false; }
+                    else { swipeStartX = e.touches[0].clientX; swipeStartY = e.touches[0].clientY; isSwiping = true; }
+                }
+            }
+            function onTouchMove(e) {
+                if (e.touches.length === 2) { e.preventDefault(); const dist = getTouchDist(e.touches[0], e.touches[1]); scale = Math.min(4, Math.max(0.5, pinchStartScale * (dist / pinchStartDist))); applyTransform(); }
+                else if (e.touches.length === 1 && scale > 1) { translateX = e.touches[0].clientX - panStartX; translateY = e.touches[0].clientY - panStartY; applyTransform(); e.preventDefault(); }
+            }
+            function onTouchEnd(e) {
+                if (isSwiping && scale === 1 && e.changedTouches.length) {
+                    const dx = e.changedTouches[0].clientX - swipeStartX, dy = e.changedTouches[0].clientY - swipeStartY;
+                    if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) { if (dx > 0) prevFullImage(); else nextFullImage(); }
+                }
+                if (e.touches.length === 0) isSwiping = false;
+            }
+
+            // === ESC Key ===
+            function onKeyDown(e) { if (e.key === 'Escape') closeFullViewer(); }
+
+            img.addEventListener('wheel', onWheel, { passive: false });
+            img.addEventListener('mousedown', onMouseDown);
+            window.addEventListener('mousemove', onMouseMove);
+            window.addEventListener('mouseup', onMouseUp);
+            window.addEventListener('keydown', onKeyDown);
+            img.style.cursor = 'grab';
+            viewerEl.addEventListener('touchstart', onTouchStart, { passive: false });
+            viewerEl.addEventListener('touchmove', onTouchMove, { passive: false });
+            viewerEl.addEventListener('touchend', onTouchEnd);
+
+            window.cleanupZoom = () => {
+                img.removeEventListener('wheel', onWheel);
+                img.removeEventListener('mousedown', onMouseDown);
+                window.removeEventListener('mousemove', onMouseMove);
+                window.removeEventListener('mouseup', onMouseUp);
+                window.removeEventListener('keydown', onKeyDown);
+                viewerEl.removeEventListener('touchstart', onTouchStart);
+                viewerEl.removeEventListener('touchmove', onTouchMove);
+                viewerEl.removeEventListener('touchend', onTouchEnd);
+            };
+        }
+        function closeFullViewer() {
+            fullViewer.classList.remove('active');
+            document.body.style.overflow = '';
+            if (window.cleanupZoom) window.cleanupZoom();
+            scale = 1; translateX = 0; translateY = 0;
+            fullImg.style.transform = '';
+        }
+        function nextFullImage() { if (currentGalleryImages.length) { currentGalleryIndex = (currentGalleryIndex + 1) % currentGalleryImages.length; fullImg.src = currentGalleryImages[currentGalleryIndex]; resetZoom(); } }
+        function prevFullImage() { if (currentGalleryImages.length) { currentGalleryIndex = (currentGalleryIndex - 1 + currentGalleryImages.length) % currentGalleryImages.length; fullImg.src = currentGalleryImages[currentGalleryIndex]; resetZoom(); } }
+        function resetZoom() { scale = 1; translateX = 0; translateY = 0; fullImg.style.transform = 'translate(0px, 0px) scale(1)'; }
+        document.getElementById('viewerPrev').onclick = () => nextFullImage();
+        document.getElementById('viewerNext').onclick = () => prevFullImage();
+        document.getElementById('viewerClose').onclick = closeFullViewer;
+        fullViewer.onclick = (e) => { if (e.target === fullViewer) closeFullViewer(); };
+
+        // 绑定事件
+        document.querySelectorAll('.view-project-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => { const key = btn.getAttribute('data-project'); if (key) openProjectModal(key); });
+        });
+        document.querySelectorAll('[data-project-img]').forEach(div => {
+            div.addEventListener('click', (e) => { const key = div.getAttribute('data-project-img'); if (key) openProjectModal(key); });
+        });
+        document.getElementById('closeModalBtn').onclick = () => {
+            document.getElementById('projectModal').classList.add('invisible', 'opacity-0');
+            document.body.style.overflow = '';
+            currentModalKey = null;
+        };
+        const form = document.getElementById('contactForm');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = form.querySelector('button[type="submit"]');
+            btn.textContent = window.i18n.getLang()==='zh'?'正在提交...':'Submitting...';
+            btn.disabled = true;
+            try {
+                const formData = new FormData(form);
+                const response = await fetch('https://formsubmit.co/ajax/2149314571@qq.com', {
+                    method: 'POST',
+                    body: formData
+                });
+                if (response.ok) {
+                    alert(window.i18n.getLang()==='zh'?'表单已提交！我会在24小时内通过您留下的联系方式与您沟通。感谢您的信任。':'Form submitted! I will contact you within 24 hours via the information you provided. Thank you for your trust.');
+                    form.reset();
+                } else {
+                    alert(window.i18n.getLang()==='zh'?'提交失败，请稍后重试或直接发送邮件至 2149314571@qq.com':'Submission failed. Please try again later or email 2149314571@qq.com directly.');
+                }
+            } catch (err) {
+                alert(window.i18n.getLang()==='zh'?'网络错误，请稍后重试或直接发送邮件至 2149314571@qq.com':'Network error. Please try again later or email 2149314571@qq.com directly.');
+            }
+            btn.textContent = window.i18n.t('form_submit');
+            btn.disabled = false;
+        });
+        const fadeElements = document.querySelectorAll('.fade-up');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('visible'); else entry.target.classList.remove('visible'); });
+        }, { threshold: 0.2 });
+        fadeElements.forEach(el => observer.observe(el));
+        document.getElementById('mobileMenuBtn')?.addEventListener('click', () => alert('导航：点击顶部作品/工作流/合作可快速跳转。'));
+
+        // Update hardcoded project cards & modal on language change
+        window.addEventListener('languageChanged', function(e) {
+            document.querySelectorAll('[data-i18n-project]').forEach(el => {
+                const projectId = el.getAttribute('data-i18n-project');
+                const field = el.getAttribute('data-i18n-field');
+                if (projectId && field) {
+                    const val = window.i18n.tp(projectId, field);
+                    if (val) el.textContent = val;
+                }
+            });
+            // Re-render modal if currently open
+            const modal = document.getElementById('projectModal');
+            if (modal && !modal.classList.contains('invisible') && currentModalKey) {
+                openProjectModal(currentModalKey);
+            }
+        });
+    </script>
+
+</body>
+</html>
